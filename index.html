@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Broadcast Command Center</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;600;700;800&display=swap');
+
+        :root {
+            --bg-color: #081119;
+            --glass-bg: rgba(13, 27, 40, 0.6);
+            --glass-border: rgba(184, 143, 105, 0.1);
+            --accent: #B88F69;
+            --accent-glow: rgba(184, 143, 105, 0.4);
+            --text-main: #EDECE4;
+            --text-muted: rgba(237, 236, 228, 0.5);
+            --danger: #dc2626;
+            --success: #66c5ac;
+            --marine: #0D1B28;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Public Sans', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 420px;
+            grid-template-rows: 70px 1fr 90px;
+            overflow: hidden;
+            gap: 25px;
+            padding: 0 25px 25px 25px;
+        }
+
+        /* --- MAIN VIDEO AREA --- */
+        .main-content {
+            grid-column: 1 / 2;
+            grid-row: 2 / 3;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .app-header {
+            grid-column: 1 / 3;
+            grid-row: 1 / 2;
+            background-color: var(--marine);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 40px;
+            margin: 0 -25px 0 -25px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-left h1 {
+            font-family: 'Public Sans', sans-serif;
+            font-size: 1.5rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .header-right {
+            text-align: right;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.2;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .header-right strong {
+            font-size: 1.1rem;
+            color: white;
+            font-weight: 700;
+        }
+
+        .live-badge {
+            background-color: var(--danger);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            animation: pulse 2s infinite;
+        }
+
+        .video-container {
+            flex-grow: 1;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(37, 77, 110, 0.15), 0 0 0 1px var(--glass-border);
+            position: relative;
+            background: #000;
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* --- SIDEBAR DASHBOARD --- */
+        .sidebar {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-left: 1px solid var(--glass-border);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            overflow-y: hidden;
+            /* Sin scroll para forzar layout */
+        }
+
+        .sidebar {
+            grid-column: 2 / 3;
+            grid-row: 2 / 3;
+        }
+
+        .widget {
+            background: rgba(13, 27, 40, 0.6);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.busy-mode {
+            background: rgba(220, 38, 38, 0.15);
+            border-left: 3px solid rgba(220, 38, 38, 0.8);
+            box-shadow: inset 0 0 120px rgba(220, 38, 38, 0.2);
+        }
+
+        .sidebar.busy-mode h3 {
+            color: #ff6b6b;
+        }
+
+        .sidebar.busy-mode .widget {
+            background: rgba(220, 38, 38, 0.1);
+            border-color: rgba(220, 38, 38, 0.4);
+        }
+
+        .widget:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(37, 77, 110, 0.1);
+            border-color: rgba(184, 143, 105, 0.5);
+        }
+
+        .widget h3 {
+            font-family: 'Public Sans', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--accent);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+
+        /* Stats Widget */
+        .stat-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 3px solid var(--accent);
+            padding: 1rem;
+            border-radius: 4px;
+        }
+
+        .stat-box .value {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 0.9;
+            margin-right: 10px;
+            letter-spacing: -2px;
+        }
+
+        .stat-box .trend {
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: var(--success);
+            padding-bottom: 4px;
+        }
+
+        .stat-box .label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            font-weight: 800;
+            color: var(--accent);
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            opacity: 0.8;
+        }
+
+        /* Tasks Widget */
+        .task-list {
+            list-style: none;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            margin-bottom: 18px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .task-item > div {
+            flex: 1;
+            min-width: 0;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
+        }
+
+        .task-item:last-child {
+            margin: 0;
+            padding: 0;
+            border: none;
+        }
+
+        .status-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+
+        .status-dot.pending {
+            background: #B88F69;
+        }
+
+        .status-dot.urgent {
+            background: var(--danger);
+        }
+
+        .status-dot.done {
+            background: var(--success);
+        }
+
+        /* --- BOTTOM TICKER --- */
+        .ticker-bar {
+            grid-column: 1 / 4;
+            grid-row: 3 / 4;
+            background: var(--marine);
+            display: flex;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .ticker-bar.alert-mode {
+            background: #dc2626;
+        }
+
+        .ticker-label {
+            background: var(--accent);
+            color: #122535;
+            font-family: 'Public Sans', sans-serif;
+            font-weight: 800;
+            font-size: 2.2rem;
+            padding: 0 40px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            flex-shrink: 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+
+        .ticker-bar.alert-mode .ticker-label {
+            background: var(--danger);
+            color: white;
+        }
+
+        .ticker-content {
+            flex-grow: 1;
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+        }
+
+        .ticker-text {
+            display: inline-flex;
+            align-items: center;
+            white-space: nowrap;
+            padding-left: 100%;
+            animation: ticker 25s linear infinite;
+            font-size: 2.2rem;
+            font-weight: 600;
+            color: #EDECE4;
+            text-transform: uppercase;
+        }
+
+
+
+        .ticker-text span {
+            margin-right: 50px;
+        }
+
+        .ticker-text .highlight {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .ticker-text .alert {
+            color: var(--danger);
+            font-weight: 600;
+        }
+
+        .ticker-manager-alert {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: white;
+            text-transform: uppercase;
+            white-space: nowrap;
+            padding: 0 20px;
+            animation: pulse 2s infinite;
+        }
+
+        /* Animations */
+        @keyframes ticker {
+            0% {
+                transform: translate3d(0, 0, 0);
+            }
+
+            100% {
+                transform: translate3d(-100%, 0, 0);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        /* --- CELEBRATION OVERLAY --- */
+        #celebration-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        #celebration-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        #celebration-msg {
+            font-family: 'Public Sans', sans-serif;
+            font-size: 7.5rem;
+            font-weight: 900;
+            color: #fff;
+            text-align: center;
+            text-transform: uppercase;
+            text-shadow: 0 0 50px rgba(184, 143, 105, 0.8), 0 0 100px rgba(37, 77, 110, 0.8);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, pulseCelebration 0.8s 0.5s infinite alternate ease-in-out;
+            transform: scale(0.1);
+            background: linear-gradient(45deg, #B88F69, #fff, #254D6E);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        @keyframes popIn {
+            to {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes pulseCelebration {
+            0% {
+                transform: scale(1);
+                filter: drop-shadow(0 0 20px rgba(37, 77, 110, 0.8));
+            }
+
+            100% {
+                transform: scale(1.15) rotate(2deg);
+                filter: drop-shadow(0 0 50px rgba(184, 143, 105, 0.9));
+            }
+        }
+
+        /* Clock & Weather Widget */
+        #clock {
+            font-family: 'Public Sans', sans-serif;
+            font-size: 4rem;
+            font-weight: 800;
+            text-align: center;
+            color: var(--text-main);
+            white-space: nowrap;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            background: rgba(37, 77, 110, 0.05);
+            padding: 10px;
+            border-radius: 12px;
+        }
+
+        .world-clocks {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-top: 25px;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .world-clock {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .world-clock:hover {
+            border-color: var(--accent);
+        }
+
+        .world-clock.working {
+            border: 1px solid var(--text-main);
+            background: rgba(37, 77, 110, 1);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .world-clock.working .wc-label {
+            color: rgba(237, 236, 228, 0.8);
+        }
+
+        .world-clock.working .wc-time {
+            color: #EDECE4;
+        }
+
+        .world-clock.off-hours {
+            border: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, 0.4);
+            box-shadow: none;
+        }
+
+        .world-clock.off-hours .wc-label {
+            color: var(--text-muted);
+        }
+
+        .world-clock.off-hours .wc-time {
+            color: var(--text-muted);
+        }
+
+        .world-clock .wc-label {
+            display: inline-block;
+            font-size: 0.9rem;
+            color: var(--text-main);
+            text-transform: uppercase;
+            font-weight: 800;
+        }
+
+        .world-clock .wc-time {
+            display: inline-block;
+            font-size: 1.3rem;
+            font-weight: 800;
+            font-family: 'Public Sans', sans-serif;
+            color: var(--text-main);
+        }
+
+        .weather-mini {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .weather-mini:hover {
+            border-color: var(--accent);
+        }
+
+        .weather-mini .temp {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1;
+        }
+
+        .weather-mini .cond {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            line-height: 1.2;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+    </style>
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+</head>
+
+<body>
+
+    <!-- Header Global -->
+    <header class="app-header">
+        <div class="header-left">
+            <img src="logo.svg" alt="Company Logo" style="height: 30px; margin-left: 15px;">
+        </div>
+        <div class="header-right">
+        </div>
+    </header>
+
+    <!-- Left Main Area: Noticias y Recordatorios -->
+    <main class="main-content" style="background: var(--glass-bg); backdrop-filter: blur(16px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 40px; justify-content: flex-start; overflow-y: auto;">
+        <ul style="list-style: none; font-size: 1.8rem; font-weight: 500; line-height: 1.8; color: var(--text-main); display: flex; flex-direction: column; gap: 10px;">
+            <li>Foto reconocimiento</li>
+            <li>fecha envíos, MPPC; MPJ; Los Cabos,</li>
+            <li>Comunicados Corporativos</li>
+            <li>Aviso de Cumpleaños poe calendario</li>
+            <li>Foto cumpleañero</li>
+            <li>Recordatorios estandares</li>
+            <li>Recordatorios Uso equipo de Protección</li>
+            <li>Calendario y responsables de tirar basura</li>
+            <li>Fotos Hoteles</li>
+            <li>Fechas entregas de festividdes, eventos y compromisos calendarizados</li>
+        </ul>
+        <!-- Hidden video elements to keep JS from throwing errors -->
+        <div style="display: none;">
+            <div id="video-layer"></div>
+            <iframe id="main-video"></iframe>
+            <div id="gallery-layer"></div>
+            <div id="gallery-author"></div>
+            <h1 id="gallery-title"></h1>
+            <p id="gallery-desc"></p>
+        </div>
+    </main>
+
+    <!-- Right Sidebar -->
+    <aside class="sidebar">
+        <!-- Top Row: Reloj & Clima -->
+        <div style="display: flex; gap: 15px;">
+            <div class="widget" style="flex: 1; padding: 15px;">
+                <h3 style="text-align: center; margin-bottom: 5px;">Reloj</h3>
+                <div id="clock" style="font-size: 2rem; margin-bottom: 0px; padding: 5px; text-align: center;">12:00:00</div>
+                <div style="display: none;">
+                    <div id="cw-merida"></div><div id="wc-merida"></div>
+                    <div id="cw-cabos"></div><div id="wc-cabos"></div>
+                    <div id="cw-jamaica"></div><div id="wc-jamaica"></div>
+                    <div id="cw-punta"></div><div id="wc-punta"></div>
+                    <div id="cw-milan"></div><div id="wc-milan"></div>
+                </div>
+            </div>
+            <div class="widget" style="flex: 1; padding: 15px; display: flex; flex-direction: column; justify-content: center;">
+                <h3 style="text-align: center; margin-bottom: 5px;">Clima</h3>
+                <div class="weather-mini" style="padding: 0; border: none; background: transparent;">
+                    <span class="temp" id="weather-temp" style="font-size: 2rem;">--°C</span>
+                    <span class="cond" id="weather-cond">Cargando...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Middle: Resultados y metas -->
+        <div class="widget" style="flex-grow: 1;">
+            <h3>Pulse Resultados y metas</h3>
+            <div class="stat-grid" style="margin-top: 15px;">
+                <div class="stat-box">
+                    <div class="label">Meta Mensual</div>
+                    <div style="display: flex; align-items: flex-end;">
+                        <span class="value">95<span style="font-size: 1.5rem;">%</span></span>
+                        <span class="trend">▲ 2%</span>
+                    </div>
+                </div>
+                <div class="stat-box" style="border-left-color: var(--success);">
+                    <div class="label">Satisfacción</div>
+                    <div style="display: flex; align-items: flex-end;">
+                        <span class="value" style="color: var(--success);">4.8</span>
+                        <span class="trend" style="opacity: 0.8;">ÓPTIMO</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display: none;">
+                 <!-- Keep JS placeholders -->
+                 <ul id="vacation-list"></ul>
+                 <ul id="deadline-list"></ul>
+                 <ul id="busy-list"></ul>
+                 <div id="bday-main"></div><div id="bday-dept"></div>
+                 <ul id="bday-next-list"></ul>
+            </div>
+        </div>
+
+        <!-- Bottom: Avisos de Último Momento -->
+        <div class="widget busy-mode" style="background: rgba(220, 38, 38, 0.2); border-color: rgba(220, 38, 38, 0.5);">
+            <h3 style="color: white; font-size: 1.2rem; margin-bottom: 15px;">Avisos de último momento</h3>
+            <ul style="color: white; list-style: none; font-size: 1.2rem; font-weight: 600; padding: 0;">
+                <li style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                    <span class="status-dot urgent"></span> Avisos de grabación Patiño
+                </li>
+            </ul>
+        </div>
+    </aside>
+
+    <!-- Bottom Ticker -->
+    <div class="ticker-bar" id="ticker-bar" style="border-radius: 12px; overflow: hidden;">
+        <div class="ticker-label" id="ticker-label" style="height: 100%; padding: 0 30px; font-size: 1.5rem;">AVISOS</div>
+        <div class="ticker-content" id="ticker-content-box">
+            <div class="ticker-text" id="ticker-text" style="animation: none; transform: none; padding-left: 20px; font-size: 1.5rem;">
+                <span style="margin-right:0;">Banner Ocupación Hotelera, avisos dias feriados, recordatorios gerenciales y Jefatura y Supervisión</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Celebration Overlay -->
+    <div id="celebration-overlay">
+        <div id="celebration-msg">¡FELICIDADES!</div>
+    </div>
+
+    <script type="module">
+        import { initFirebase } from './firebase-config.js';
+        import { onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Simple clock functionality
+        let lastDay = new Date().getDate();
+
+        function updateClock() {
+            const now = new Date();
+            let h = now.getHours();
+            let m = now.getMinutes().toString().padStart(2, '0');
+            let ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12;
+            h = h ? h : 12; // 0 debe ser 12
+
+            document.getElementById('clock').textContent = `${h}:${m} ${ampm}`;
+
+            // Actualizar Relojes Mundiales (Validando Working Hours)
+            const optsTime = { hour: 'numeric', minute: '2-digit', hour12: true };
+            const optsHourOnly = { hour: 'numeric', hour12: false };
+
+            const tzs = [
+                { clockId: 'wc-merida', containerId: 'cw-merida', tz: 'America/Merida' },
+                { clockId: 'wc-cabos', containerId: 'cw-cabos', tz: 'America/Mazatlan' },
+                { clockId: 'wc-jamaica', containerId: 'cw-jamaica', tz: 'America/Jamaica' },
+                { clockId: 'wc-punta', containerId: 'cw-punta', tz: 'America/Santo_Domingo' },
+                { clockId: 'wc-milan', containerId: 'cw-milan', tz: 'Europe/Rome' }
+            ];
+
+            tzs.forEach(zone => {
+                document.getElementById(zone.clockId).textContent = new Intl.DateTimeFormat('es-MX', { ...optsTime, timeZone: zone.tz }).format(now);
+                let hourStr = new Intl.DateTimeFormat('en-US', { ...optsHourOnly, timeZone: zone.tz }).format(now);
+                // Extract digits since it could format as "15" or "15 o'clock" or "3 PM", force en-US avoids strange AM/PM mostly if 24hr, but let's parse raw.
+                // Using hour12: false normally yields "0" to "23".
+                let hr = parseInt(hourStr);
+
+                let container = document.getElementById(zone.containerId);
+                // Horario laboral entre 9 y 17:59
+                if (!isNaN(hr) && hr >= 9 && hr < 18) {
+                    container.classList.add('working');
+                    container.classList.remove('off-hours');
+                } else {
+                    container.classList.remove('working');
+                    container.classList.add('off-hours');
+                }
+            });
+
+            // Actualizar cumpleaños a medianoche automáticamente
+            let currentDay = now.getDate();
+            if (currentDay !== lastDay) {
+                lastDay = currentDay;
+                if (cachedBirthdays) renderBirthdays();
+            }
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        let currentVideoId = "";
+        let currentSheetUrl = "";
+        let cachedBirthdays = null;
+        let lastCelebrationTime = 0; // Para no repetir viejo confeti al recargar
+
+        // Controladores de Galería
+        let activeGalleryItems = [];
+        let currentGalleryIdx = -1; // -1 significa que el Video está sonando
+        let galleryTimer = null;
+
+        function runGalleryCycle() {
+            clearTimeout(galleryTimer);
+            if (activeGalleryItems.length === 0) {
+                // Solo video
+                currentGalleryIdx = -1;
+                document.getElementById('gallery-layer').style.opacity = '0';
+                document.getElementById('video-layer').style.opacity = '1';
+                return;
+            }
+
+            currentGalleryIdx++;
+            if (currentGalleryIdx >= activeGalleryItems.length) {
+                currentGalleryIdx = -1;
+
+                if (window.hasVideos) {
+                    // Volver a dar un respiro con el video por 30 segundos
+                    document.getElementById('gallery-layer').style.opacity = '0';
+                    document.getElementById('video-layer').style.opacity = '1';
+                    galleryTimer = setTimeout(runGalleryCycle, 30000);
+                } else {
+                    // No hay video de fondo, reiniciar galería inmediatamente
+                    galleryTimer = setTimeout(runGalleryCycle, 0);
+                }
+            } else {
+                // Inyectar datos a la foto actual
+                let slide = activeGalleryItems[currentGalleryIdx];
+                let layer = document.getElementById('gallery-layer');
+                let authorBadge = document.getElementById('gallery-author');
+
+                document.getElementById('gallery-title').innerText = slide.title || '';
+                document.getElementById('gallery-desc').innerText = slide.desc || '';
+
+                if (slide.author) {
+                    authorBadge.style.display = "inline-block";
+                    authorBadge.innerText = `Aviso de: ${slide.author}`;
+                    authorBadge.style.backgroundColor = slide.color || "#ff0055";
+                    authorBadge.style.boxShadow = `0 4px 15px ${slide.color || "#ff0055"}66`;
+                } else {
+                    authorBadge.style.display = "none";
+                }
+
+                layer.style.backgroundImage = `url(${slide.image})`;
+                document.getElementById('video-layer').style.opacity = '0';
+                layer.style.opacity = '1';
+
+                // Mostrarla por 15 segundos
+                galleryTimer = setTimeout(runGalleryCycle, 15000);
+            }
+        }
+
+        let rotatorConfig = {
+            busy: { currentIdx: 0, itemsHtml: [], containerId: 'busy-list', fallback: '<div style="font-size: 1rem; color: var(--text-muted);">Nadie ocupado actualmente.</div>' },
+            vacations: { currentIdx: 0, itemsHtml: [], containerId: 'vacation-list', fallback: '<div style="font-size: 1rem; color: var(--text-muted);">Sin personal programado.</div>' },
+            reminders: { currentIdx: 0, itemsHtml: [], containerId: 'deadline-list', fallback: '<div style="font-size: 1rem; color: var(--text-muted);">Sin pendientes.</div>' },
+            birthdays: { currentIdx: 0, itemsHtml: [], containerId: 'bday-next-list', fallback: '' }
+        };
+
+        function renderRotatorSlice(confKey) {
+            let conf = rotatorConfig[confKey];
+            const container = document.getElementById(conf.containerId);
+            if (!container) return;
+
+            if (conf.itemsHtml.length === 0) {
+                container.innerHTML = conf.fallback;
+                return;
+            }
+
+            let slice = conf.itemsHtml.slice(conf.currentIdx, conf.currentIdx + 2);
+            if (slice.length === 1 && conf.itemsHtml.length > 1) {
+                // If odd number of items, wrap the last item with the first one to always show 2
+                slice.push(conf.itemsHtml[0]);
+            }
+
+            container.innerHTML = slice.join('');
+        }
+
+        setInterval(() => {
+            Object.keys(rotatorConfig).forEach(key => {
+                let conf = rotatorConfig[key];
+                if (conf.itemsHtml.length > 2) {
+                    conf.currentIdx += 2;
+                    if (conf.currentIdx >= conf.itemsHtml.length) {
+                        conf.currentIdx = 0;
+                    }
+                    renderRotatorSlice(key);
+                }
+            });
+        }, 60000); // Rota cada 1 minuto (60,000 ms)
+
+        async function fetchAndProcessSheet(url) {
+            try {
+                const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+                if (!match) return;
+                const sheetId = match[1];
+                const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
+
+                const res = await fetch(csvUrl);
+                const text = await res.text();
+
+                const meses = { "ENERO": 0, "FEBRERO": 1, "MARZO": 2, "ABRIL": 3, "MAYO": 4, "JUNIO": 5, "JULIO": 6, "AGOSTO": 7, "SEPTIEMBRE": 8, "OCTUBRE": 9, "NOVIEMBRE": 10, "DICIEMBRE": 11 };
+                let lines = text.split(/\r?\n/);
+                let birthdays = [];
+                let currentMonth = -1;
+
+                for (let line of lines) {
+                    if (line.trim() === '') continue;
+                    let cols = line.split(',');
+                    if (cols.length < 4) continue;
+
+                    let col1 = cols[1]?.trim().toUpperCase();
+                    if (meses[col1] !== undefined) currentMonth = meses[col1];
+
+                    let dayStr = cols[2]?.trim();
+                    let nameStr = cols[3]?.trim();
+                    let day = parseInt(dayStr);
+                    if (!isNaN(day) && nameStr && currentMonth !== -1) {
+                        birthdays.push({ month: currentMonth, day: day, name: nameStr });
+                    }
+                }
+
+                cachedBirthdays = birthdays;
+                renderBirthdays();
+            } catch (e) {
+                console.error("Error leyendo Sheet de Cumpleaños:", e);
+            }
+        }
+
+        function renderBirthdays() {
+            if (!cachedBirthdays) return;
+            let today = new Date();
+            let m = today.getMonth();
+            let d = today.getDate();
+
+            cachedBirthdays.forEach(b => {
+                let nextDate = new Date(today.getFullYear(), b.month, b.day);
+                // Si ya pasó en este año, calculamos para el siguiente año
+                if (nextDate < new Date(today.getFullYear(), m, d)) {
+                    nextDate.setFullYear(today.getFullYear() + 1);
+                }
+                b.nextDate = nextDate;
+            });
+
+            cachedBirthdays.sort((a, b) => a.nextDate - b.nextDate);
+
+            // Los de Hoy
+            let todayBirthdays = cachedBirthdays.filter(b => b.month === m && b.day === d);
+            // Los Próximos que NO sean hoy y que sean de este mes o el próximo
+            let nextMonth = (m + 1) % 12;
+            let nextBirthdays = cachedBirthdays.filter(b =>
+                !(b.month === m && b.day === d) &&
+                (b.month === m || b.month === nextMonth)
+            );
+
+            if (todayBirthdays.length > 0) {
+                document.getElementById('bday-main').innerHTML = `🎂 ${todayBirthdays.map(b => b.name).join(', ')}`;
+                document.getElementById('bday-dept').innerHTML = "¡Muchas Felicidades!";
+            } else {
+                document.getElementById('bday-main').innerHTML = `--`;
+                document.getElementById('bday-dept').innerHTML = "Nadie en el equipo";
+            }
+
+            const mesesNombres = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+            rotatorConfig.birthdays.itemsHtml = [];
+            rotatorConfig.birthdays.currentIdx = 0;
+
+            nextBirthdays.forEach(b => {
+                rotatorConfig.birthdays.itemsHtml.push(`
+                    <li class="task-item" style="border: none; margin-bottom: 0; padding-bottom: 12px;">
+                        <span class="status-dot done"></span>
+                        <div>
+                            <div style="font-weight: 800; font-size: 1.2rem; color: var(--text-main); margin-bottom: 3px;">${b.name}</div>
+                            <div style="font-size: 1rem; color: var(--text-muted);">${b.day} de ${mesesNombres[b.month]}</div>
+                        </div>
+                    </li>
+                 `);
+            });
+            renderRotatorSlice('birthdays');
+        }
+
+        async function fetchWeather() {
+            try {
+                // Clima Cancún (Open Meteo Free API)
+                const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=21.1619&longitude=-86.8515&current_weather=true');
+                const data = await res.json();
+                if (data && data.current_weather) {
+                    document.getElementById('weather-temp').textContent = Math.round(data.current_weather.temperature) + '°C';
+
+                    const code = data.current_weather.weathercode;
+                    let desc = "Clima ext.";
+                    if (code === 0) desc = "Soleado ☀️";
+                    else if (code <= 3) desc = "Nublado ☁️";
+                    else if (code < 50) desc = "Niebla 🌫️";
+                    else if (code < 60) desc = "Llovizna 🌧️";
+                    else if (code < 70) desc = "Lluvia 🌧️";
+                    else if (code < 80) desc = "Nieve ❄️";
+                    else if (code < 90) desc = "Aguaceros 🌧️";
+                    else desc = "Tormenta ⛈️";
+
+                    document.getElementById('weather-cond').textContent = desc;
+                }
+            } catch (e) {
+                console.error('Weather error:', e);
+            }
+        }
+
+        fetchWeather();
+        setInterval(fetchWeather, 1800000); // 30 minutos
+
+        // Inicializar Firebase
+        initFirebase().then(({ docRef }) => {
+            console.log("Firebase Conectado. Escuchando cambios en vivo...");
+
+            onSnapshot(docRef, (doc) => {
+                if (doc.exists()) {
+                    const data = doc.data();
+
+                    // Disparador de Celebraciones (Confeti)
+                    if (data.celebration && data.celebration.timestamp > lastCelebrationTime) {
+                        // Es una celebración muy reciente (menos de 20 seg para no triguerear cosas viejas al recargar)
+                        if (Date.now() - data.celebration.timestamp < 20000 && data.celebration.msg) {
+                            lastCelebrationTime = data.celebration.timestamp;
+                            const overlay = document.getElementById('celebration-overlay');
+                            document.getElementById('celebration-msg').innerHTML = data.celebration.msg;
+                            overlay.classList.add('active');
+
+                            // Empezar fuegos articifiales con canvas-confetti
+                            let duration = 8000;
+                            let end = Date.now() + duration;
+
+                            (function frame() {
+                                // Laterales constantes y potentes
+                                confetti({ particleCount: 8, angle: 60, spread: 80, origin: { x: 0 }, startVelocity: 60, zIndex: 10000, colors: ['#254D6E', '#B88F69', '#dc2626', '#ffffff', '#627264'] });
+                                confetti({ particleCount: 8, angle: 120, spread: 80, origin: { x: 1 }, startVelocity: 60, zIndex: 10000, colors: ['#254D6E', '#B88F69', '#dc2626', '#ffffff', '#627264'] });
+
+                                // Explosiones random desde el centro (15% de probabilidad por frame)
+                                if (Math.random() < 0.15) {
+                                    confetti({ particleCount: 30, spread: 120, origin: { x: 0.5, y: 0.7 }, startVelocity: 70, zIndex: 10000, colors: ['#254D6E', '#B88F69'] });
+                                }
+
+                                if (Date.now() < end) requestAnimationFrame(frame);
+                            }());
+
+                            // Apagar overlay despues de 10 segs
+                            setTimeout(() => {
+                                overlay.classList.remove('active');
+                            }, 10000);
+                        }
+                    }
+
+                    // Actualizar Ticker y Mensaje de Gerencia
+                    const tickerBar = document.getElementById('ticker-bar');
+                    const tickerLabel = document.getElementById('ticker-label');
+                    const tickerContentBox = document.getElementById('ticker-content-box');
+
+                    if (data.managerMsg && data.managerMsg.trim() !== '') {
+                        // MODO GERENCIA
+                        tickerBar.classList.add('alert-mode');
+                        tickerLabel.innerText = "GERENCIA";
+                        tickerContentBox.innerHTML = `<div class="ticker-manager-alert">🚨 ${data.managerMsg} 🚨</div>`;
+                    } else {
+                        // MODO NORMAL
+                        tickerBar.classList.remove('alert-mode');
+                        tickerLabel.innerText = "ÚLTIMA HORA";
+
+                        let charCount = 0;
+                        let innerHtml = '';
+                        if (data.tickers && data.tickers.length > 0) {
+                            data.tickers.forEach(t => {
+                                if (t.includes('span style')) {
+                                    // Mensajes desde Admin con colores personalizados
+                                    innerHtml += `<span>${t}</span>`;
+                                } else if (t.includes('URGENTE') || t.includes('RECORDATORIO') || t.includes('COMUNICADO:')) {
+                                    innerHtml += `<span><span class="alert">ATENCIÓN:</span> ${t}</span>`;
+                                } else {
+                                    innerHtml += `<span><span class="highlight">INFO:</span> ${t}</span>`;
+                                }
+                                charCount += t.replace(/<[^>]+>/g, '').length + 20; // 20 por el espaciado
+                            });
+                        } else {
+                            innerHtml = '<span>Sin anuncios actuales.</span>';
+                            charCount = 40;
+                        }
+
+                        // Ajustar velocidad en base al número de letras (~0.25s por letra) min 25s
+                        let dur = Math.max(25, Math.floor(charCount * 0.25));
+                        tickerContentBox.innerHTML = `<div class="ticker-text" id="ticker-text" style="animation-duration: ${dur}s">${innerHtml}</div>`;
+                    }
+
+                    // Actualizar Cumpleaños (Automático Google Sheets si existe, o manual si no)
+                    if (data.sheetUrl) {
+                        if (data.sheetUrl !== currentSheetUrl) {
+                            currentSheetUrl = data.sheetUrl;
+                            fetchAndProcessSheet(currentSheetUrl);
+                            // También recargar cada cierto tiempo (ej. 3 horas)
+                            setInterval(() => { fetchAndProcessSheet(currentSheetUrl); }, 10800000);
+                        }
+                    } else if (data.birthday) {
+                        document.getElementById('bday-main').innerHTML = `🎂 ${data.birthday.name || '--'}`;
+                        document.getElementById('bday-dept').innerHTML = data.birthday.dept || '--';
+                        rotatorConfig.birthdays.itemsHtml = []; // Limpia siguientes si es entrada manual
+                        renderRotatorSlice('birthdays');
+                    }
+
+                    // Actualizar Personal En Junta
+                    rotatorConfig.busy.itemsHtml = [];
+                    rotatorConfig.busy.currentIdx = 0;
+
+                    if (data.busy && data.busy.length > 0) {
+                        document.querySelectorAll('.sidebar').forEach(s => s.classList.add('busy-mode'));
+                        data.busy.forEach(b => {
+                            rotatorConfig.busy.itemsHtml.push(`
+                                <li class="task-item">
+                                    <span class="status-dot urgent"></span>
+                                    <div>
+                                        <div style="font-weight: 800; font-size: 1.2rem; color: var(--text-main);">${b.name}</div>
+                                        <div style="font-size: 1rem; color: var(--text-muted);">${b.reason || 'Ocupado'}</div>
+                                    </div>
+                                </li>`);
+                        });
+                    } else {
+                        document.querySelectorAll('.sidebar').forEach(s => s.classList.remove('busy-mode'));
+                    }
+                    renderRotatorSlice('busy');
+
+                    // Actualizar Vacaciones
+                    rotatorConfig.vacations.itemsHtml = [];
+                    rotatorConfig.vacations.currentIdx = 0;
+
+                    if (data.vacations && data.vacations.length > 0) {
+                        const now = new Date();
+                        const twoWeeksFromNow = new Date();
+                        twoWeeksFromNow.setDate(now.getDate() + 14);
+
+                        const formatVacationDate = (dateStr) => {
+                            const d = new Date(dateStr + "T12:00:00");
+                            const day = d.getDate();
+                            const month = d.toLocaleString('es-MX', { month: 'short' });
+                            return { day, month };
+                        };
+
+                        data.vacations.forEach(v => {
+                            let displayStr = v.dates || "";
+                            let isRelevant = true;
+
+                            if (v.start && v.end) {
+                                const startDate = new Date(v.start + "T12:00:00");
+                                const endDate = new Date(v.end + "T23:59:59");
+
+                                if (endDate < now) {
+                                    isRelevant = false;
+                                } else if (startDate > twoWeeksFromNow) {
+                                    isRelevant = false;
+                                } else {
+                                    const s = formatVacationDate(v.start);
+                                    const e = formatVacationDate(v.end);
+                                    if (s.month === e.month) {
+                                        displayStr = `Del ${s.day} al ${e.day} de ${s.month}`;
+                                    } else {
+                                        displayStr = `Del ${s.day} de ${s.month} al ${e.day} de ${e.month}`;
+                                    }
+                                }
+                            } else if (v.start && !v.end) {
+                                const startDate = new Date(v.start + "T12:00:00");
+                                if (startDate > twoWeeksFromNow || startDate < new Date(now.getTime() - 86400000)) {
+                                    isRelevant = false;
+                                } else {
+                                    const s = formatVacationDate(v.start);
+                                    displayStr = `El ${s.day} de ${s.month}`;
+                                }
+                            }
+
+                            if (isRelevant) {
+                                rotatorConfig.vacations.itemsHtml.push(`
+                                    <li class="task-item">
+                                        <span class="status-dot done"></span>
+                                        <div>
+                                            <div style="font-weight: 800; font-size: 1.2rem; color: var(--text-main);">${v.name}</div>
+                                            <div style="font-size: 1rem; color: var(--text-muted);">${displayStr}</div>
+                                        </div>
+                                    </li>`);
+                            }
+                        });
+                    }
+                    renderRotatorSlice('vacations');
+
+                    // Actualizar Deadlines
+                    rotatorConfig.reminders.itemsHtml = [];
+                    rotatorConfig.reminders.currentIdx = 0;
+
+                    if (data.reminders && data.reminders.length > 0) {
+                        data.reminders.forEach(r => {
+                            let statusClass = "pending";
+                            if (r.time.toLowerCase().includes('hoy')) statusClass = "urgent";
+                            if (r.time.toLowerCase().includes('completado')) statusClass = "done";
+
+                            rotatorConfig.reminders.itemsHtml.push(`
+                                <li class="task-item">
+                                    <span class="status-dot ${statusClass}"></span>
+                                    <div>
+                                        <div style="font-weight: 800; font-size: 1.2rem; color: var(--text-main);">${r.title}</div>
+                                        <div style="font-size: 1rem; color: var(--text-muted);">${r.time}</div>
+                                    </div>
+                                </li>`);
+                        });
+                    }
+                    renderRotatorSlice('reminders');
+
+                    // Actualizar Media Playlist
+                    window.hasVideos = (data.mediaIds && data.mediaIds.length > 0);
+
+                    if (window.hasVideos) {
+                        let newPlayListStr = data.mediaIds.join(",");
+                        if (newPlayListStr !== currentVideoId) {
+                            currentVideoId = newPlayListStr;
+                            const iframe = document.getElementById('main-video');
+
+                            let firstId = data.mediaIds[0];
+                            let othersParams = data.mediaIds.length > 1 ? `&playlist=${data.mediaIds.slice(1).join(',')}` : `&playlist=${firstId}`;
+
+                            iframe.src = `https://www.youtube.com/embed/${firstId}?autoplay=1&mute=1&controls=0&loop=1${othersParams}`;
+                        }
+                    } else {
+                        currentVideoId = "";
+                        document.getElementById('main-video').src = ""; // Limpiar src para que el player se detenga
+                    }
+
+                    // Actualizar Galería Dinámica Hero
+                    if (data.gallery) {
+                        const now = Date.now();
+                        const validGallery = data.gallery.filter(item => item.expiresAt > now && !item.isPaused);
+
+                        // Solo reiniciar el ciclo si hubo un cambio de tamaño en la galería para no interrumpir
+                        if (validGallery.length !== activeGalleryItems.length) {
+                            activeGalleryItems = validGallery;
+                            currentGalleryIdx = -1;
+                            runGalleryCycle();
+                        } else {
+                            activeGalleryItems = validGallery;
+                            // Prevenir que si borran todo se quede atorada
+                            if (activeGalleryItems.length === 0) { runGalleryCycle(); }
+                        }
+                    }
+
+
+                }
+            });
+        }).catch(err => {
+            console.error("Error conectando a Firebase: ", err);
+        });
+
+    </script>
+</body>
+
+</html>

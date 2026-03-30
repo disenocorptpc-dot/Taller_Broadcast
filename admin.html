@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Broadcast Command Center</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@500;700&display=swap');
+
+        :root {
+            --bg-color: #081119;
+            --glass-bg: rgba(13, 27, 40, 0.6);
+            --glass-border: rgba(184, 143, 105, 0.1);
+            --accent: #B88F69;
+            --accent-glow: rgba(184, 143, 105, 0.4);
+            --text-main: #EDECE4;
+            --text-muted: rgba(237, 236, 228, 0.5);
+            --danger: #dc2626;
+            --success: #66c5ac;
+            --marine: #0D1B28;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Public Sans', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            text-transform: uppercase;
+        }
+
+        /* --- CONTENEDOR PRINCIPAL --- */
+        .container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 900px;
+            padding: 40px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+            transition: all 0.3s ease;
+        }
+
+        /* --- LOGIN SECTION --- */
+        #login-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        #login-section h1 {
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+
+        .form-group {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px var(--accent-glow);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 5px 15px rgba(255, 0, 85, 0.4);
+        }
+
+        /* --- DASHBOARD SECTION --- */
+        #dashboard-section {
+            display: none;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .header h1 {
+            color: var(--accent);
+        }
+
+        .logout-btn {
+            width: auto;
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+
+        .logout-btn:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .card {
+            background: rgba(13, 27, 40, 0.6);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .card h2 {
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .list-item p {
+            font-size: 0.9rem;
+        }
+
+        .delete-btn {
+            width: auto;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            background: transparent;
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+
+        .delete-btn:hover {
+            background: var(--danger);
+        }
+
+        .edit-btn {
+            width: auto;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            background: transparent;
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .edit-btn:hover {
+            background: var(--success);
+            color: var(--bg-color);
+        }
+
+        .pause-btn {
+            width: auto;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+        }
+
+        .pause-btn:hover {
+            background: var(--accent);
+            color: var(--bg-color);
+        }
+
+        .flex-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .flex-row input {
+            flex-grow: 1;
+            margin-bottom: 0;
+        }
+
+        .flex-row button {
+            width: auto;
+            padding: 0 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- LOGIN -->
+        <div id="login-section">
+            <h1>Acceso Admin</h1>
+            <p style="color: var(--text-muted); margin-bottom: 20px;">Ingresa para controlar el Broadcast</p>
+
+            <div class="form-group">
+                <label>Usuario</label>
+                <input type="text" id="username" placeholder="admin" value="admin">
+            </div>
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input type="password" id="password" placeholder="admin" value="admin">
+            </div>
+
+            <button onclick="login()">Entrar al Panel</button>
+            <p id="login-error" style="color: var(--danger); display: none; margin-top: 10px; font-size: 0.9rem;">
+                Credenciales incorrectas.</p>
+        </div>
+
+        <!-- DASHBOARD -->
+        <div id="dashboard-section">
+            <div class="header">
+                <h1>Command Center Panel</h1>
+                <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+            </div>
+
+            <div class="grid">
+
+                <!-- MEDIA PLAYER CONTROL -->
+                <div class="card">
+                    <h2>📺 Playlist de YouTube</h2>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px;">Pega el enlace
+                        completo de YouTube y agrégalo a la fila de reproducción.</p>
+                    <div class="flex-row">
+                        <input type="text" id="new-media-id" placeholder="Enlace de YouTube...">
+                        <button onclick="addMedia()">Añadir</button>
+                    </div>
+                    <div id="media-list" style="margin-top: 15px;">
+                        <!-- Playlist Inject -->
+                    </div>
+                </div>
+
+                <!-- BIRTHDAY CONTROL -->
+                <div class="card">
+                    <h2>🎉 Cumpleañero del Día</h2>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px;">Enlaza excel o escribe
+                        manualmente.</p>
+                    <div class="form-group">
+                        <label>Nombre y Depto (Ej: Carlos, Diseño)</label>
+                        <div class="flex-row">
+                            <input type="text" id="bday-name" placeholder="Nombre...">
+                            <button onclick="updateBirthday()">Actualizar</button>
+                        </div>
+
+                        <label>Auto-Sincronización (Excel de Google Sheets)</label>
+                        <div class="flex-row">
+                            <input type="text" id="sheet-url" placeholder="Liga pública de Google Sheets...">
+                            <button class="logout-btn"
+                                style="border-color: rgba(255,255,255,0.2); color: var(--text-muted);"
+                                onclick="fetchGoogleSheet()">🔗 Sincronizar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mensaje de Gerencia -->
+                <div class="card">
+                    <h2>📢 Mensaje de Gerencia (Alerta Mayor)</h2>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 10px;">Interrumpe Tickers
+                        para mostrar mensaje rojo central.</p>
+                    <div class="flex-row">
+                        <input type="text" id="manager-msg" placeholder="🚨 Escribe mensaje de gerencia...">
+                        <button onclick="updateManagerMsg()">Publicar</button>
+                    </div>
+                    <button class="delete-btn" style="width: 100%; border-color: rgba(255,100,100,0.5);"
+                        onclick="clearManagerMsg()">Quitar Mensaje de Gerencia</button>
+                </div>
+
+                <!-- TICKER CONTROL -->
+                <div class="card">
+                    <h2>📰 Mensajes Ticker</h2>
+                    <div class="flex-row">
+                        <input type="text" id="new-ticker" placeholder="Ej: URGENTE: Revisar...">
+                        <button onclick="addTicker()">Añadir</button>
+                    </div>
+                    <div id="ticker-list">
+                        <!-- Items se inyectan acá -->
+                    </div>
+                </div>
+
+                <!-- REMINDERS CONTROL -->
+                <div class="card">
+                    <h2>⏰ Recordatorios y Deadlines</h2>
+                    <div class="flex-row">
+                        <input type="text" id="rem-title" placeholder="Título...">
+                        <input type="text" id="rem-time" placeholder="Hora/Edo...">
+                        <button onclick="addReminder()">Añadir</button>
+                    </div>
+                    <div id="reminder-list" style="display: grid; grid-template-columns: 1fr; gap: 10px;">
+                        <!-- Items se inyectan acá -->
+                    </div>
+                </div>
+
+                <!-- EN JUNTA CONTROL -->
+                <div class="card">
+                    <h2>🔇 Personal en Junta</h2>
+                    <div class="flex-row">
+                        <input type="text" id="busy-name" placeholder="Nombre (Ej: Roberto)...">
+                        <input type="text" id="busy-reason" placeholder="Motivo (Ej: En Junta)...">
+                        <button onclick="addBusy()">Añadir</button>
+                    </div>
+                    <div id="busy-list" style="display: grid; grid-template-columns: 1fr; gap: 10px;">
+                        <!-- Items se inyectan acá -->
+                    </div>
+                </div>
+
+                <!-- VACACIONES CONTROL -->
+                <div class="card">
+                    <h2>🏖️ Vacaciones</h2>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 10px;">Especifica quién se
+                        encuentra de vacaciones o sale pronto.</p>
+                    <div class="flex-row" style="flex-wrap: wrap;">
+                        <input type="text" id="vac-name" placeholder="Nombre completo..." style="flex: 1 1 100%;">
+                        <div style="display: flex; gap: 10px; flex: 1 1 100%;">
+                            <input type="date" id="vac-start" title="Inicio"
+                                style="flex: 1; padding: 10px; background: rgba(0,0,0,0.3); color: white; border: 1px solid var(--glass-border); border-radius: 8px;">
+                            <input type="date" id="vac-end" title="Fin"
+                                style="flex: 1; padding: 10px; background: rgba(0,0,0,0.3); color: white; border: 1px solid var(--glass-border); border-radius: 8px;">
+                        </div>
+                        <button onclick="addVacation()" style="flex: 1 1 100%;">Añadir</button>
+                    </div>
+                    <div id="vacation-list" style="display: grid; grid-template-columns: 1fr; gap: 10px;">
+                        <!-- Items se inyectan acá -->
+                    </div>
+                </div>
+
+                <!-- CELEBRATION / CONFETTI CONTROL -->
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h2>🎊 Celebración en Pantalla Completa</h2>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 10px;">Lanza confeti y
+                        muestra un mensaje gigante por 10 segundos en la televisión.</p>
+                    <div class="flex-row">
+                        <input type="text" id="celebration-msg"
+                            placeholder="Ej: ¡Felicidades al equipo de Diseño por el premio!">
+                        <button onclick="triggerCelebration()" style="background: var(--marine); color: white;">¡Lanzar
+                            Confeti!</button>
+                    </div>
+                </div>
+
+                <!-- HERO GALLERY CONTROL -->
+                <div class="card gallery-card" style="grid-column: 1 / -1;">
+                    <h2>🎬 Portadas Principales (TV Centro)</h2>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px;">Sube una imagen para
+                        mostrarla en el reproductor principal. Se comprimirá automáticamente sin usar almacenamiento
+                        externo y se borrará sola en 7 días.</p>
+
+                    <div class="form-group" style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
+                        <input type="file" id="hero-file" accept="image/*" style="margin-bottom: 10px; color: white;">
+                        <div class="flex-row">
+                            <input type="text" id="hero-title" spellcheck="true" lang="es"
+                                placeholder="Titular Grande (Ej: URGENTE: Junta General)">
+                        </div>
+                        <div class="flex-row" style="margin-top: 10px;">
+                            <select id="hero-dept"
+                                style="padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.5); color: white; outline: none; flex: 1; margin-right: 10px;">
+                                <option value="" disabled selected>Coordinación / Área...</option>
+                                <option value="Proyectos Especiales" data-color="#254D6E">Proyectos Especiales</option>
+                                <option value="Diseño Industrial y 3D" data-color="#B88F69">Diseño Industrial y 3D
+                                </option>
+                                <option value="Operaciones" data-color="#66c5ac">Operaciones</option>
+                                <option value="Foto" data-color="#E0E5E5">Foto</option>
+                                <option value="AyB" data-color="#EDECE4">AyB</option>
+                            </select>
+                            <input type="text" id="hero-desc" placeholder="Descripción Breve (Opcional)..."
+                                spellcheck="true" lang="es" style="flex: 2;">
+                        </div>
+                        <div class="flex-row" style="margin-top: 10px;">
+                            <button onclick="uploadGalleryItem()"
+                                style="background: var(--accent); width: 100%;">Publicar en Pantalla</button>
+                        </div>
+                    </div>
+
+                    <div id="gallery-list"
+                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 20px;">
+                        <!-- Gallery items -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initFirebase } from './firebase-config.js';
+        import { setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        let dbDocRef = null;
+        let loggedInUser = null;
+        const appUsers = {
+            "admin": { pass: "admin", role: "Admin", color: "#122535" },
+            "rsantarosa": { pass: "diseno123", role: "Diseño Industrial y 3D", color: "#B88F69" },
+            "kmunoz": { pass: "proyectos123", role: "Proyectos Especiales", color: "#254D6E" },
+            "enoya": { pass: "foto123", role: "Foto", color: "#E0E5E5" },
+            "pamcastillo": { pass: "ayb123", role: "AyB", color: "#EDECE4" },
+            "lcabrera": { pass: "gerente123", role: "Gerente Diseño", color: "#254D6E" },
+            "mbarquin": { pass: "taller123", role: "Jefe de Taller", color: "#B88F69" },
+            "itrujillo": { pass: "admin123", role: "Administración", color: "#122535" },
+            "operaciones": { pass: "operaciones123", role: "Operaciones", color: "#66c5ac" },
+            "disenador": { pass: "galeria2026", role: "Diseñador General", color: "#B88F69", galleryOnly: true }
+        };
+        let globalState = {
+            mediaIds: ["jfKfPfyJRdk"],
+            tickers: [],
+            reminders: [],
+            busy: [],
+            vacations: [],
+            gallery: [], // Para portadas Hero
+            managerMsg: "",
+            sheetUrl: "",
+            birthday: { name: "", dept: "" },
+            celebration: { msg: "", timestamp: 0 }
+        };
+
+        initFirebase().then(async ({ docRef }) => {
+            dbDocRef = docRef;
+            console.log("Admin Firebase Conectado.");
+            // Cargar estado inicial
+            const snap = await getDoc(docRef);
+            if (snap.exists()) {
+                globalState = { ...globalState, ...snap.data() };
+                if (!globalState.gallery) globalState.gallery = [];
+            }
+            renderLists(); // Call renderLists after globalState is loaded
+            renderGallery(); // Call renderGallery after globalState is loaded
+        }).catch(err => {
+            console.error(err);
+        });
+
+        async function saveToFirebase() {
+            if (dbDocRef) {
+                try {
+                    await setDoc(dbDocRef, globalState, { merge: true });
+                } catch (e) {
+                    console.error("Firebase Save Error:", e);
+                    throw e;
+                }
+            }
+        }
+
+        // --- EXPORT TO WINDOW FOR HTML ONCLICK ---
+        window.login = function login() {
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value.trim();
+
+            if (appUsers[user] && appUsers[user].pass === pass) {
+                loggedInUser = appUsers[user];
+                loggedInUser.username = user;
+
+                // Hide other cards if user is restricted to gallery only
+                const allCards = document.querySelectorAll('.card');
+                allCards.forEach(c => {
+                    if (loggedInUser.galleryOnly && !c.classList.contains('gallery-card')) {
+                        c.style.display = 'none';
+                    } else {
+                        c.style.display = 'block';
+                    }
+                });
+
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('dashboard-section').style.display = 'block';
+                renderLists();
+                renderGallery(); // Also render gallery on login
+            } else {
+                document.getElementById('login-error').style.display = 'block';
+            }
+        }
+
+        window.logout = function logout() {
+            loggedInUser = null;
+            document.getElementById('dashboard-section').style.display = 'none';
+            document.getElementById('login-section').style.display = 'flex';
+        }
+
+        window.renderLists = function renderLists() {
+            // Render Playlist
+            const mediaList = document.getElementById('media-list');
+            mediaList.innerHTML = '';
+            globalState.mediaIds.forEach((m, index) => {
+                mediaList.innerHTML += `
+                    <div class="list-item">
+                        <p>${m}</p>
+                        <button class="delete-btn" onclick="deleteMedia(${index})">Eliminar</button>
+                    </div>
+                `;
+            });
+
+            // Render Tickers
+            const tickerList = document.getElementById('ticker-list');
+            tickerList.innerHTML = '';
+            globalState.tickers.forEach((t, index) => {
+                tickerList.innerHTML += `
+                    <div class="list-item">
+                        <p>${t}</p>
+                        <div style="display:flex; gap: 8px; flex-shrink: 0; margin-left:15px;">
+                            <button class="edit-btn" onclick="editTicker(${index})">Editar</button>
+                            <button class="delete-btn" onclick="deleteTicker(${index})">Eliminar</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Render Reminders
+            const remList = document.getElementById('reminder-list');
+            remList.innerHTML = '';
+            globalState.reminders.forEach((r, index) => {
+                remList.innerHTML += `
+                    <div class="list-item">
+                        <div>
+                            <p style="font-weight: 600; color: var(--accent);">${r.title}</p>
+                            <p style="color: var(--text-muted); font-size: 0.8rem;">${r.time}</p>
+                        </div>
+                        <button class="delete-btn" onclick="deleteReminder(${index})">Eliminar</button>
+                    </div>
+                `;
+            });
+
+            // Render En Junta
+            const busyList = document.getElementById('busy-list');
+            busyList.innerHTML = '';
+            (globalState.busy || []).forEach((b, index) => {
+                busyList.innerHTML += `
+                    <div class="list-item">
+                        <div>
+                            <p style="font-weight: 600; color: var(--danger);">${b.name}</p>
+                            <p style="color: var(--text-muted); font-size: 0.8rem;">${b.reason}</p>
+                        </div>
+                        <button class="delete-btn" onclick="deleteBusy(${index})">Liberar</button>
+                    </div>
+                `;
+            });
+
+            // Render Vacaciones
+            const vacList = document.getElementById('vacation-list');
+            vacList.innerHTML = '';
+            (globalState.vacations || []).forEach((v, index) => {
+                let display = v.dates; // Retro-compatibilidad manuales antiguos
+                if (v.start && v.end) display = `Días: ${v.start} al ${v.end}`;
+
+                vacList.innerHTML += `
+                    <div class="list-item">
+                        <div>
+                            <p style="font-weight: 800; color: var(--success);">${v.name}</p>
+                            <p style="color: var(--text-muted); font-size: 0.8rem;">${display}</p>
+                        </div>
+                        <button class="delete-btn" onclick="deleteVacation(${index})">Quitar</button>
+                    </div>
+                `;
+            });
+        }
+
+        window.addMedia = async function addMedia() {
+            const url = document.getElementById('new-media-id').value;
+            // Extraer ID de Youtube (soporta watch?v=ID o youtu.be/ID)
+            let videoId = url;
+            const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:.*v=|.*\/|.*embed\/))([a-zA-Z0-9_-]{11})/);
+            if (match && match[1]) videoId = match[1];
+
+            if (videoId) {
+                globalState.mediaIds.push(videoId);
+                document.getElementById('new-media-id').value = '';
+                renderLists();
+                await saveToFirebase();
+            }
+        }
+
+        window.deleteMedia = async function deleteMedia(index) {
+            globalState.mediaIds.splice(index, 1);
+            renderLists();
+            await saveToFirebase();
+        }
+
+        window.addBusy = async function addBusy() {
+            const name = document.getElementById('busy-name').value;
+            const reason = document.getElementById('busy-reason').value;
+            if (name) {
+                if (!globalState.busy) globalState.busy = [];
+                globalState.busy.push({ name, reason: reason || 'Ocupado' });
+                document.getElementById('busy-name').value = '';
+                document.getElementById('busy-reason').value = '';
+                renderLists();
+                await saveToFirebase();
+            }
+        }
+
+        window.deleteBusy = async function deleteBusy(index) {
+            globalState.busy.splice(index, 1);
+            renderLists();
+            await saveToFirebase();
+        }
+
+        window.addVacation = async function addVacation() {
+            const name = document.getElementById('vac-name').value;
+            const start = document.getElementById('vac-start').value;
+            const end = document.getElementById('vac-end').value;
+            if (name && start && end) {
+                if (!globalState.vacations) globalState.vacations = [];
+                globalState.vacations.push({ name, start, end, dates: '' });
+                document.getElementById('vac-name').value = '';
+                document.getElementById('vac-start').value = '';
+                document.getElementById('vac-end').value = '';
+                renderLists();
+                await saveToFirebase();
+            } else {
+                alert('Ingresa el nombre y las 2 fechas completas.');
+            }
+        }
+
+        window.deleteVacation = async function deleteVacation(index) {
+            globalState.vacations.splice(index, 1);
+            renderLists();
+            await saveToFirebase();
+        }
+
+        window.addTicker = async function addTicker() {
+            const val = document.getElementById('new-ticker').value;
+            if (val && loggedInUser) {
+                let styledMsg = val;
+                // Agrega el departamento y colorea TODO el mensaje
+                styledMsg = `<span style="color:${loggedInUser.color};"><span style="font-weight: 700; font-size: 0.9em; margin-right: 5px;">[${loggedInUser.role}]</span> ${val}</span>`;
+
+                globalState.tickers.push(styledMsg);
+                document.getElementById('new-ticker').value = '';
+                renderLists();
+                await saveToFirebase();
+            }
+        }
+
+        window.deleteTicker = async function deleteTicker(index) {
+            globalState.tickers.splice(index, 1);
+            renderLists();
+            await saveToFirebase();
+        }
+
+        window.editTicker = async function editTicker(index) {
+            let currentHTML = globalState.tickers[index];
+            let tempDiv = document.createElement('div');
+            tempDiv.innerHTML = currentHTML;
+            
+            // Clean HTML to extract pure text
+            let cleanText = tempDiv.textContent || tempDiv.innerText || "";
+            // Remove "[Rango]" tag if it exists in the raw text so user edits pure message
+            cleanText = cleanText.replace(/^\[.*?\]\s*/, '');
+            
+            const newVal = prompt("Modificar mensaje:", cleanText);
+            if (newVal !== null && newVal.trim() !== "") {
+                if (loggedInUser) {
+                    globalState.tickers[index] = `<span style="color:${loggedInUser.color};"><span style="font-weight: 700; font-size: 0.9em; margin-right: 5px;">[${loggedInUser.role}]</span> ${newVal.trim()}</span>`;
+                } else {
+                    globalState.tickers[index] = newVal.trim();
+                }
+                renderLists();
+                await saveToFirebase();
+            }
+        }
+
+        window.addReminder = async function addReminder() {
+            const title = document.getElementById('rem-title').value;
+            const time = document.getElementById('rem-time').value;
+            if (title && time) {
+                globalState.reminders.push({ title, time });
+                document.getElementById('rem-title').value = '';
+                document.getElementById('rem-time').value = '';
+                renderLists();
+                await saveToFirebase();
+            }
+        }
+
+        window.deleteReminder = async function deleteReminder(index) {
+            globalState.reminders.splice(index, 1);
+            renderLists();
+            await saveToFirebase();
+        }
+
+        window.updateManagerMsg = async function updateManagerMsg() {
+            const msg = document.getElementById('manager-msg').value;
+            if (msg && loggedInUser) {
+                let styledMsg = msg;
+                styledMsg = `<span style="color:${loggedInUser.color};"><span style="font-weight: 700; margin-right: 8px;">[${loggedInUser.role}]</span> ${msg}</span>`;
+
+                globalState.managerMsg = styledMsg;
+                document.getElementById('manager-msg').value = '';
+                await saveToFirebase();
+                alert('Mensaje de gerencia publicado.');
+            }
+        }
+
+        window.clearManagerMsg = async function clearManagerMsg() {
+            globalState.managerMsg = "";
+            await saveToFirebase();
+            alert('Mensaje de gerencia retirado.');
+        }
+
+        // ==========================
+        //  GALLERY COMPRESS & UPLOAD
+        // ==========================
+        window.uploadGalleryItem = function () {
+            const fileInput = document.getElementById('hero-file');
+            const file = fileInput.files[0];
+            const title = document.getElementById('hero-title').value.trim();
+            const desc = document.getElementById('hero-desc').value.trim();
+            const deptSelect = document.getElementById('hero-dept');
+            const selectedDept = deptSelect.value;
+
+            if (!file) { alert("Por favor selecciona una imagen primero."); return; }
+            if (loggedInUser && loggedInUser.galleryOnly && !selectedDept) { alert("Por favor selecciona tu Coordinación / Área."); return; }
+            if (file.size > 15 * 1024 * 1024) { alert("Por favor sube fotos menores a 15MB."); return; }
+
+            // Lógica de canvas thumbnail y compresión Base64
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                const img = new Image();
+                img.onload = async function () {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 1000; // Calidad aceptable para tele pesando minúsculo
+                        const scaleSize = MAX_WIDTH / img.width;
+                        const w = img.width > MAX_WIDTH ? MAX_WIDTH : img.width;
+                        const h = img.width > MAX_WIDTH ? img.height * scaleSize : img.height;
+
+                        canvas.width = w;
+                        canvas.height = h;
+
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, w, h);
+
+                        // Comprimir en JPEG calidad del 60% agresivo (evitar saturar Firestore de 1MB)
+                        const base64Jpeg = canvas.toDataURL('image/jpeg', 0.6);
+
+                        let finalRole = (appUsers[loggedInUser.username] || { role: "Sistemas" }).role;
+                        let finalColor = (appUsers[loggedInUser.username] || { color: "#ffffff" }).color;
+
+                        if (selectedDept) {
+                            finalRole = selectedDept;
+                            finalColor = deptSelect.options[deptSelect.selectedIndex].getAttribute('data-color');
+                        }
+
+                        if (!globalState.gallery) globalState.gallery = [];
+
+                        globalState.gallery.push({
+                            id: Date.now().toString(),
+                            image: base64Jpeg,
+                            title: title,
+                            desc: desc,
+                            author: finalRole,
+                            color: finalColor,
+                            expiresAt: Date.now() + (7 * 24 * 60 * 60 * 1000) // CADUCA EN 7 DÍAS EXACTOS
+                        });
+
+                        await saveToFirebase();
+
+                        document.getElementById('hero-file').value = "";
+                        document.getElementById('hero-title').value = "";
+                        document.getElementById('hero-desc').value = "";
+                        alert("¡Portada empujada a la Televisión! 🚀");
+                        renderGallery();
+                    } catch (error) {
+                        console.error("Error cargando imagen a Firebase:", error);
+                        alert("❌ Error: Posiblemente tu imagen es demasiado pesada o se llenó la memoria global de portadas (Límite 1MB de base de datos). Elimina algunas portadas e intenta de nuevo.");
+                    }
+                }
+                img.src = event.target.result;
+            }
+            reader.readAsDataURL(file);
+        };
+
+        window.deleteGalleryItem = async function (id) {
+            globalState.gallery = globalState.gallery.filter(i => i.id !== id);
+            await saveToFirebase();
+            renderGallery();
+        }
+
+        window.toggleGalleryItem = async function (id) {
+            const item = globalState.gallery.find(i => i.id === id);
+            if (item) {
+                item.isPaused = !item.isPaused;
+                await saveToFirebase();
+                renderGallery();
+            }
+        }
+
+        function renderGallery() {
+            const list = document.getElementById('gallery-list');
+            list.innerHTML = '';
+            if (!globalState.gallery) return;
+
+            // Limpieza automática caducada
+            const now = Date.now();
+            globalState.gallery = globalState.gallery.filter(item => {
+                return (item.expiresAt > now);
+            });
+
+            globalState.gallery.forEach(item => {
+                const overlayHtml = item.isPaused ? `<div style="position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); display:flex; justify-content:center; align-items:center; z-index:5;"><span style="color:#fff; font-weight:bold; font-size:1.5rem; letter-spacing:2px;">PAUSADA</span></div>` : '';
+                const pauseText = item.isPaused ? '▶ Reanudar' : '⏸ Pausar';
+                const pauseBtnClass = item.isPaused ? 'edit-btn' : 'pause-btn';
+
+                list.innerHTML += `
+                    <div style="background: rgba(0,0,0,0.4); border-radius: 8px; overflow: hidden; border: 1px solid ${item.color || '#fff'}; position: relative; opacity: ${item.isPaused ? '0.6' : '1'};">
+                        <div style="position:relative; height: 120px; background-image: url(${item.image}); background-size: cover; background-position: center;">
+                            ${overlayHtml}
+                        </div>
+                        <div style="padding: 10px;">
+                            <strong style="display: block; font-size: 0.9rem; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${item.title || "Sin título"}</strong>
+                            <small style="color: var(--text-muted); display: block; margin-bottom: 5px;">Por: ${item.author}</small>
+                            <div style="display:flex; gap: 8px;">
+                                <button class="${pauseBtnClass}" style="flex: 1; padding: 5px;" onclick="toggleGalleryItem('${item.id}')">${pauseText}</button>
+                                <button class="delete-btn" style="flex: 1; padding: 5px;" onclick="deleteGalleryItem('${item.id}')">Eliminar</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // ==========================
+        //  REMAINING
+        // ==========================
+        window.updateBirthday = async function updateBirthday() {
+            const name = document.getElementById('bday-name').value;
+            if (name) {
+                let parts = name.split(",");
+                globalState.birthday = {
+                    name: parts[0]?.trim() || "",
+                    dept: parts[1]?.trim() || ""
+                };
+                await saveToFirebase();
+                alert('Cumpleañero actualizado a: ' + globalState.birthday.name);
+            }
+        }
+
+        window.triggerCelebration = async function triggerCelebration() {
+            const msg = document.getElementById('celebration-msg').value;
+            if (msg) {
+                globalState.celebration = {
+                    msg: msg,
+                    timestamp: Date.now() // Forzamos un cambio para que la TV lo detecte
+                };
+                document.getElementById('celebration-msg').value = '';
+                await saveToFirebase();
+                alert('¡Confeti lanzado! 🎉');
+            } else {
+                alert('Escribe un mensaje de celebración primero.');
+            }
+        }
+
+        window.fetchGoogleSheet = async function fetchGoogleSheet() {
+            const url = document.getElementById('sheet-url').value;
+            if (!url) { alert('Por favor, pega la liga pública del Google Sheet.'); return; }
+
+            const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+            if (!match) { alert('URL inválida.'); return; }
+
+            globalState.sheetUrl = url;
+            await saveToFirebase();
+            alert('✅ Liga de Sheets vinculada con éxito. \\n\\nLa pantalla principal (Proyector) se encargará de leerlo automáticamente de fondo, mostrar el cumpleaños de hoy y calcular los tres siguientes compañeros en la fila.');
+        }
+
+    </script>
+</body>
+
+</html>
