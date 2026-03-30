@@ -15,7 +15,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-export const STATE_DOC_ID = 'broadcast_state';
+export const STATE_DOC_ID = 'broadcast_taller_state';
 
 export async function initFirebase() {
     return new Promise((resolve, reject) => {
